@@ -1,9 +1,9 @@
-const events = require('events');
-const fs = require('fs');
-const path = require('path');
-const readline = require('readline');
+import events from 'events';
+import fs from 'fs';
+import { URL } from 'url';
+import readline from 'readline';
 
-const INPUT = path.resolve(__dirname, 'dive.input');
+const INPUT = new URL('./dive.input', import.meta.url).pathname;
 
 // read all lines from input file
 (async function processLineByLine() {

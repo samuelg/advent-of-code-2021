@@ -1,13 +1,13 @@
-const fs = require('fs');
-const path = require('path');
-const _ = require('lodash');
+import fs from 'fs';
+import { URL } from 'url';
+import _ from 'lodash';
 
 const MARKED = 'X';
 
 // read all lines from input file
 function readInput(test = false) {
-  const testInput = path.resolve(__dirname, 'test.input');
-  const input = path.resolve(__dirname, 'squid.input');
+  const testInput = new URL('./test.input', import.meta.url).pathname;
+  const input = new URL('./squid.input', import.meta.url).pathname;
 
   return fs.readFileSync(test ? testInput : input, 'utf8');
 };

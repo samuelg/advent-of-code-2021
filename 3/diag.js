@@ -1,9 +1,9 @@
-const events = require('events');
-const fs = require('fs');
-const path = require('path');
-const readline = require('readline');
+import events from 'events';
+import fs from 'fs';
+import { URL } from 'url';
+import readline from 'readline';
 
-const INPUT = path.resolve(__dirname, 'diag.input');
+const INPUT = new URL('./diag.input', import.meta.url).pathname;
 
 function nthBit(num, n) {
   // shift left to significant position

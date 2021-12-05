@@ -3,13 +3,17 @@
   "version": "1.0.0",
   "private": true,
   "description": "",
-  "main": "index.js",
+  "exports": "./index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Samuel Fortier-Galarneau",
   "license": "MIT",
   "dependencies": {
+    "chalk": "^5.0.0",
+    "fill-range": "^7.0.1",
     "lodash": "^4.17.21"
-  }
+  },
+  "node": "^14.0.0",
+  "type": "module"
 }

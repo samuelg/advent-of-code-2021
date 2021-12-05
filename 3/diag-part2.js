@@ -1,11 +1,10 @@
-const events = require('events');
-const fs = require('fs');
-const path = require('path');
-const readline = require('readline');
+import events from 'events';
+import fs from 'fs';
+import { URL } from 'url';
+import readline from 'readline';
+import _ from 'lodash';
 
-const { keys } = require('lodash');
-
-const INPUT = path.resolve(__dirname, 'diag.input');
+const INPUT = new URL('./diag.input', import.meta.url).pathname;
 
 function nthBit(num, n) {
   // shift left to significant position
@@ -82,7 +81,7 @@ function mostAndLeastCommonDigit(numbers, n) {
 
     // calculate oxygen generator and CO2 scrubber ratings
     // fake range (here we want position to go from higher to lower bit)
-    for (const position of keys(Array(binaryLength)).reverse()) {
+    for (const position of _.keys(Array(binaryLength)).reverse()) {
       // position is 0 based in our range
       const bitPosition = parseInt(position, 10) + 1;
       console.log(`Considering bit position: ${bitPosition}`);
