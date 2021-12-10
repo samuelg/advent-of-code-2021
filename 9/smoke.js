@@ -26,37 +26,28 @@ function parseInput(input) {
     .filter((line) => !_.isEmpty(line));
 }
 
-function findLowPoints(floor) {
+function findAdjacentPoints(floor, row, col) {
+  const left = [row, Math.max(col - 1, 0)];
+  const right = [row, Math.min(col + 1, floor[row].length - 1)];
+  const up = [Math.max(row - 1, 0), col];
+  const down = [Math.min(row + 1, floor.length - 1), col];
+
+  // exclude current point due to corners and sides
+  return [left, up, right, down].filter(([x, y]) => x !== row || y !== col);
+}
+
+function isLowPoint(floor, row, col) {
+  const adjacent = findAdjacentPoints(floor, row, col);
+  return adjacent.every(([x, y]) => floor[x][y] > floor[row][col]);
+}
+
+function findLowPointValues(floor) {
   const lowPoints = [];
 
   for (let row = 0; row < floor.length; row++) {
     for (let col = 0; col < floor[row].length; col++) {
-      const xs = _.uniq([
-        Math.abs(row - 1),
-        row,
-        Math.min(row + 1, floor.length - 1),
-      ]);
-      const ys = _.uniq([
-        Math.abs(col - 1),
-        col,
-        Math.min(col + 1, floor[row].length - 1),
-      ]);
-      // assume low point, try to find point that shows otherwise
-      let low = true;
-
-      xs.forEach((x) => {
-        ys.forEach((y) => {
-          const diagonal = x !== row && y !== col;
-          // don't compare with diagonals or current point
-          if (diagonal || (x === row && y === col)) {
-            return;
-          }
-          low = !low ? low : floor[x][y] > floor[row][col];
-        });
-      });
-
-      if (low) {
-        // console.log(`Low point: ${chalk.red(floor[row][col])}`);
+      if (isLowPoint(floor, row, col)) {
+        // console.log(`Low point value: ${chalk.red(floor[row][col])}`);
         lowPoints.push(floor[row][col]);
       }
     }
@@ -65,10 +56,68 @@ function findLowPoints(floor) {
   return lowPoints;
 }
 
-function calculateRiskLevel(lowPoints) {
-  return lowPoints.reduce((riskLevel, lowPoint) => {
-    return riskLevel + lowPoint + 1;
+function findLowPointCoordinates(floor) {
+  const lowPointCoordinates = [];
+
+  for (let row = 0; row < floor.length; row++) {
+    for (let col = 0; col < floor[row].length; col++) {
+      if (isLowPoint(floor, row, col)) {
+        // console.log(`Low point coordinate: ${chalk.red([row, col])}`);
+        lowPointCoordinates.push([row, col]);
+      }
+    }
+  }
+
+  return lowPointCoordinates;
+}
+
+/**
+ * Heuristic:
+ *
+ * find adjacent points for each low
+ * for each point we haven't seen yet for the current basin
+ * if it's not a 9 add it to the current basin and get its adjacent points
+ * repeat until no more adjacent points can be found
+ */
+function findBasins(floor, lowPointCoordinates) {
+  const basins = [];
+
+  lowPointCoordinates.forEach(([row, col]) => {
+    let done = false;
+    let basin = [[row, col]];
+    let adjacent = findAdjacentPoints(floor, row, col);
+
+    while(!done) {
+      if (_.isEmpty(adjacent)) {
+        done = true;
+        break;
+      }
+      adjacent = adjacent.reduce((points, [x, y]) => {
+        const existing = basin.find(([a, b]) => a === x && b === y);
+        if (!existing && floor[x][y] !== 9) {
+          basin.push([x, y]);
+          points = _.concat(points, findAdjacentPoints(floor, x, y));
+        }
+        return points;
+      }, []);
+    }
+    // console.log(`Basin: ${chalk.red(JSON.stringify(basin))}`);
+    basins.push(basin);
+  });
+
+  return basins;
+}
+
+function calculateRiskLevel(lowPointValues) {
+  return lowPointValues.reduce((riskLevel, lowPointValue) => {
+    return riskLevel + lowPointValue + 1;
   }, 0);
+}
+
+function calculateProductOfLargestBasins(basins) {
+  const largest = _.sortBy(basins.map((points) => points.length), _.identity)
+    .slice(basins.length - 3);
+  return largest.reduce((product, size) => product * size, 1);
 }
 
 function part1() {
@@ -77,17 +126,22 @@ function part1() {
   const test = false;
   const input = readInput(test);
   const floor = parseInput(input);
-  const lowPoints = findLowPoints(floor);
-  console.log(`Low points: ${chalk.blue(JSON.stringify(lowPoints))}`);
-  const riskLevel = calculateRiskLevel(lowPoints);
+  const lowPointValues = findLowPointValues(floor);
+  console.log(`Low points: ${chalk.blue(JSON.stringify(lowPointValues))}`);
+  const riskLevel = calculateRiskLevel(lowPointValues);
   console.log(`Risk Level: ${chalk.red(riskLevel)}`);
 };
 
 function part2() {
   console.log('Part 2!');
   // true for test input, false for real input
-  const test = true;
+  const test = false;
   const input = readInput(test);
+  const floor = parseInput(input);
+  const lowPointCoordinates = findLowPointCoordinates(floor);
+  const basins = findBasins(floor, lowPointCoordinates);
+  const product = calculateProductOfLargestBasins(basins);
+  console.log(`Product: ${chalk.red(product)}`);
 };
 
 (function main() {
